@@ -1,0 +1,20 @@
+{
+    "anchorBottom": true,
+    "anchorLeft": false,
+    "anchorRight": true,
+    "anchorTop": false,
+    "bgColor": "#2d2a30",
+    "bottomLeftRadius": 20,
+    "bottomRightRadius": 20,
+    "fontColor": "#e2e2e2",
+    "height": 450,
+    "marginBottom": 250,
+    "marginLeft": 0,
+    "marginRight": 0,
+    "marginTop": 0,
+    "radius": 20,
+    "topBgColor": "#2a282b",
+    "topLeftRadius": 20,
+    "topRightRadius": 20,
+    "width": 400
+}
