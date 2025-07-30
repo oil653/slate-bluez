@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Bluetooth
@@ -68,8 +69,8 @@ Scope{
             // DO NOT EDIT THE VALUES HERE BUT IN THE CONFIG FILE!!
             
             // About the main window
-            property real height: 450;
-            property real width: 400;
+            property real height: 320;
+            property real width: 380;
                 // anchor points 
             property bool anchorTop: false;
             property bool anchorBottom: true;
@@ -81,17 +82,18 @@ Scope{
             property real marginLeft: 0; 
             property real marginRight: 0;
                 // Padding
-            property real radius: 20; // Fallback radius
             property real topLeftRadius: 20;
             property real topRightRadius: 20;
             property real bottomLeftRadius: 20;
             property real bottomRightRadius: 20;
 
             // Colors
-                // The background of the bottom 2/3
+                // The background of the bottom panel
             property string bgColor: "#2d2a30";
-                // The background of the top 1/3 panel
+                // The background of the top panel
             property string topBgColor: "#2a282b";
+                // Device entry bg color
+            property string entryColor: "#858585"
                 // Font color
             property string fontColor: "#e2e2e2"
 
@@ -113,7 +115,7 @@ Scope{
     }
 
     FontLoader{
-        id: customFont;
+        id: icelandFont;
         source: "root:/fonts/Iceland-Regular.ttf"
     }
 
@@ -138,7 +140,6 @@ Scope{
             id: bg;
             anchors.fill: parent;
             color: config.bgColor;
-            radius: config.radius;
             topLeftRadius: config.topLeftRadius;
             topRightRadius: config.topRightRadius;
             bottomLeftRadius: config.bottomLeftRadius;
@@ -149,25 +150,24 @@ Scope{
                 anchors.horizontalCenter: parent.horizontalCenter;
                 anchors.top: parent.top;
                 implicitWidth: parent.width;
-                implicitHeight: parent.height / 3
-                topLeftRadius: config.radius
-                topRightRadius: config.radius
+                implicitHeight: parent.height / 5
+                topLeftRadius: config.topLeftRadius
+                topRightRadius: config.topRightRadius
                 color: config.topBgColor;
                 ColumnLayout {
                     anchors.fill: parent;
-
-                    Text{
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                    Layout.topMargin: 10;
-                    id: slateText
-                    text: "<b>SLATE BLUEZ</b>"
-                    font.pointSize: 20;
-                    color: "grey";
-                    }
                     
-                    RowLayout{ // Middle line with bluez controls
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignMiddle;
-                        spacing: 40
+                    RowLayout{ 
+                        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop;
+                        spacing: 20;
+                        Layout.topMargin: 8;
+                        Text{
+                            id: slateText
+                            text: "<b>SLATE BLUEZ</b>"
+                            font.pointSize: 28;
+                            color: "grey";
+                            font.family: icelandFont.name;
+                        }
                         ToggleButton{ // adapter power button
                             buttonId: "powerToggle";
                             showIcon: true;
@@ -188,18 +188,85 @@ Scope{
                             }
                         }
                     }
+                }
+            } // top closing
 
-                    RowLayout{
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom; 
-                        Layout.bottomMargin: 10
-                        Text{
-                            text: "h"
-                            font.pointSize: 20
-                            color: "white"
+        
+            ClippingWrapperRectangle{ // Devices panel
+                id: bottomPanel;
+                anchors.top: topPanel.bottom;
+                anchors.horizontalCenter: rootPanel.horizontalCenter;
+                
+                height: rootPanel.height - topPanel.height;
+                width: rootPanel.width;
+                bottomLeftRadius: config.bottomLeftRadius;
+                bottomRightRadius: config.bottomRightRadius;
+                
+                color: "transparent";
+
+                ScrollView{
+                    anchors.fill: parent;
+                    Column{
+                        anchors.fill: parent;
+                        spacing: 5;
+                        Repeater{
+                            // model: Bluetooth.devices;
+                            model: 10
+                            Rectangle {
+                                id: deviceEntry;
+                                property var device: modelData;
+                                height: 65;
+                                width: bottomPanel.width;
+                                color: config.entryColor;
+                                Row{
+                                    anchors.fill: parent;
+                                    anchors.leftMargin: 5
+                                    spacing: 8
+                                    Rectangle{ // There should be an icon here, wip
+                                        id: entryIcon;
+                                        width: 65;
+                                        height: 65;
+                                    }
+                                    Column{
+                                        id: entryInfo;
+                                        spacing: 0
+                                        Text{
+                                            text: "<b>Device name</b>"; // device name
+                                            font.pointSize: 16
+                                        }
+                                        Text{
+                                            text: "<i>MAC addres</i>"; // device mac
+                                            font.pointSize: 9;
+                                        }
+                                        Row{
+                                            id: entryIcons;
+                                            IconImage{ // Displayed if the device is trusted
+                                                source: "root:/icons/trusted.svg";
+                                                implicitSize: 20;
+                                            }
+                                            IconImage{ // Displayed if the device is connected
+                                                source: "root:/icons/connected.svg";
+                                                implicitSize: 18;
+                                            }
+                                            IconImage{ // Displayed if battery for device is available
+                                                source: "root:/icons/battery.svg";
+                                                implicitSize: 18;
+                                            }
+                                            Text{ // Displayed if battery available
+                                                text: "69%";
+                                                font.pointSize: 15;
+                                                font.family: icelandFont.name;
+                                            }
+                                            IconImage{
+                                                source: "root:/icons/blocked.svg";
+                                                implicitSize: 20;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-
-
                 }
             }
 
@@ -235,8 +302,11 @@ Scope{
             id: rfkPop
             anchors.fill: parent;
             visible: false;
-            radius: config.radius;
             color: config.bgColor;
+            topLeftRadius: config.topLeftRadius;
+            topRightRadius: config.topRightRadius;
+            bottomLeftRadius: config.bottomLeftRadius;
+            bottomRightRadius: config.bottomRightRadius;
             Text{
                 id: blockedMainText
                 anchors.top: parent.top;
