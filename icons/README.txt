@@ -2,6 +2,9 @@ You can use your own icons if you like to
 Just change the files keeping the name
 
 Sources:
+
+The device_icons are from the Papirus theme
+
 bluetooth.svg - https://www.svgrepo.com/svg/532841/bluetooth-on
 bluetooth_white.svg is a color inverter version of bluetooth.svg so it works well with black theme
 

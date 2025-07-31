@@ -70,7 +70,7 @@ Scope{
             
             // About the main window
             property real height: 320;
-            property real width: 380;
+            property real width: 350; // 350 < x < 400
                 // anchor points 
             property bool anchorTop: false;
             property bool anchorBottom: true;
@@ -145,7 +145,7 @@ Scope{
             bottomLeftRadius: config.bottomLeftRadius;
             bottomRightRadius: config.bottomRightRadius;
 
-            Rectangle{ // Top 1/3 control panel
+            Rectangle{ // Top control panel
                 id: topPanel;
                 anchors.horizontalCenter: parent.horizontalCenter;
                 anchors.top: parent.top;
@@ -159,7 +159,7 @@ Scope{
                     
                     RowLayout{ 
                         Layout.alignment: Qt.AlignHCenter | Qt.AlignTop;
-                        spacing: 20;
+                        spacing: rootPanel.width / 30;
                         Layout.topMargin: 8;
                         Text{
                             id: slateText
@@ -170,16 +170,17 @@ Scope{
                         }
                         ToggleButton{ // adapter power button
                             buttonId: "powerToggle";
+                            width: rootPanel.width /6.5;
                             showIcon: true;
                             iconOffPath: "root:/icons/bluetooth_white.svg"
-                            // This double way loop should be safe, but im not sure...
                             isOn: root.adapterOn;
                             onIsOnChanged: {
                                 Bluetooth.defaultAdapter.enabled = isOn
                             }
                         }
                         ToggleButton{ // Discovering
-                            buttonId: "powerToggle";
+                            width: rootPanel.width /6.5;
+                            buttonId: "discoverToggle";
                             showIcon: true;
                             iconOffPath: "root:/icons/scanning_white.svg"
                             isOn: root.isScanning;
@@ -210,8 +211,8 @@ Scope{
                         anchors.fill: parent;
                         spacing: 5;
                         Repeater{
-                            // model: Bluetooth.devices;
-                            model: 10
+                            model: Bluetooth.devices;
+                            // model: 10
                             Rectangle {
                                 id: deviceEntry;
                                 property var device: modelData;
@@ -222,46 +223,49 @@ Scope{
                                     anchors.fill: parent;
                                     anchors.leftMargin: 5
                                     spacing: 8
-                                    Rectangle{ // There should be an icon here, wip
+                                    /* Rectangle{ // There should be an icon here, wip
                                         id: entryIcon;
                                         width: 65;
                                         height: 65;
+                                    } */
+                                    IconImage{
+                                        id: entryIcon;
+                                        implicitSize: deviceEntry.height;
+                                        source: `root:/icons/device_icons/${(deviceEntry.device.icon != "") ? deviceEntry.device.icon : "unknown" }`;
                                     }
                                     Column{
                                         id: entryInfo;
                                         spacing: 0
                                         Text{
-                                            text: "<b>Device name</b>"; // device name
-                                            font.pointSize: 16
+                                            text: `<b>${deviceEntry.device.name}</b>`;
+                                            font.pointSize: 14
                                         }
                                         Text{
-                                            text: "<i>MAC addres</i>"; // device mac
+                                            text: `<i>${deviceEntry.device.address}</i>`; // device mac
                                             font.pointSize: 9;
                                         }
                                         Row{
                                             id: entryIcons;
                                             IconImage{ // Displayed if the device is trusted
-                                                source: "root:/icons/trusted.svg";
+                                                source: deviceEntry.device.trusted ? "root:/icons/trusted.svg" : (deviceEntry.device.blocked) ? "root:/icons/blocked.svg" : "";
                                                 implicitSize: 20;
                                             }
                                             IconImage{ // Displayed if the device is connected
-                                                source: "root:/icons/connected.svg";
+                                                source: deviceEntry.device.connected ? "root:/icons/connected.svg" : "";
                                                 implicitSize: 18;
                                             }
                                             IconImage{ // Displayed if battery for device is available
-                                                source: "root:/icons/battery.svg";
+                                                source: deviceEntry.device.batteryAvailable ? "root:/icons/battery.svg" : "";
                                                 implicitSize: 18;
                                             }
                                             Text{ // Displayed if battery available
-                                                text: "69%";
-                                                font.pointSize: 15;
-                                                font.family: icelandFont.name;
-                                            }
-                                            IconImage{
-                                                source: "root:/icons/blocked.svg";
-                                                implicitSize: 20;
+                                                text: (deviceEntry.device.batteryAvailable) ? `<b>${deviceEntry.device.battery * 100}%</b>` : "";
+                                                font.pointSize: 12;
+                                                // font.family: icelandFont.name;
                                             }
                                         }
+                                    }
+                                    Row{ // Connect, trust, block
                                     }
                                 }
                             }
@@ -270,7 +274,7 @@ Scope{
                 }
             }
 
-            Rectangle{ // Debug button, it overwrites all config with the default properties
+            /* Rectangle{ // Debug button, it overwrites all config with the default properties
                 anchors.bottom: parent.bottom;
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: 30;
@@ -282,7 +286,7 @@ Scope{
                         console.log("Config overwritten");
                     }
                 }
-            }
+            } */
         }
 
         /* Rectangle{ // Debug button, it gets the rfkill popup up
