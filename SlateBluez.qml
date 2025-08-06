@@ -70,7 +70,7 @@ Scope{
             
             // About the main window
             property real height: 320;
-            property real width: 350; // 350 < x < 400
+            property real width: 350; // Should be between 300 and 400
                 // anchor points 
             property bool anchorTop: false;
             property bool anchorBottom: true;
@@ -93,12 +93,15 @@ Scope{
                 // The background of the top panel
             property string topBgColor: "#2a282b";
                 // Device entry bg color
-            property string entryColor: "#858585"
+            property string entryColor: "#686868"
                 // Font color
-            property string fontColor: "#e2e2e2"
+            property string fontColor: "grey"
 
             // misc
-
+                // You can set if what icon theme you want. For example 16x16 or 64x64. Bigger ones are usually more colorful
+            property string iconType: "64x64";
+                //  If set to true a white background will be displayed behind the icon. Useful is the icon color is the same as the entryColor
+            property bool iconBackground: true;
         }
         
     }
@@ -163,10 +166,11 @@ Scope{
                         Layout.topMargin: 8;
                         Text{
                             id: slateText
-                            text: "<b>SLATE BLUEZ</b>"
+                            text: "<b>SLATE BLUEZ</b>";
                             font.pointSize: 28;
                             color: "grey";
                             font.family: icelandFont.name;
+                            visible: (config.width >= 350);
                         }
                         ToggleButton{ // adapter power button
                             buttonId: "powerToggle";
@@ -212,62 +216,177 @@ Scope{
                         spacing: 5;
                         Repeater{
                             model: Bluetooth.devices;
-                            // model: 10
                             Rectangle {
                                 id: deviceEntry;
                                 property var device: modelData;
-                                height: 65;
+                                // Trying to keep the entry height good enough in different widths
+                                height: (config.width >= 350) ? config.width / 5.3 : config.width / 5;
                                 width: bottomPanel.width;
                                 color: config.entryColor;
-                                Row{
+                                RowLayout{
                                     anchors.fill: parent;
                                     anchors.leftMargin: 5
                                     spacing: 8
-                                    /* Rectangle{ // There should be an icon here, wip
-                                        id: entryIcon;
-                                        width: 65;
-                                        height: 65;
-                                    } */
-                                    IconImage{
-                                        id: entryIcon;
-                                        implicitSize: deviceEntry.height;
-                                        source: `root:/icons/device_icons/${(deviceEntry.device.icon != "") ? deviceEntry.device.icon : "unknown" }`;
+                                    Item{ // Device icon with the background, if there is no icon its not visible
+                                        implicitHeight: (config.width >= 350) ? deviceEntry.height-5 : deviceEntry.height - 20;
+                                        implicitWidth: (config.width >= 350) ? deviceEntry.height-5 : deviceEntry.height - 20;
+                                        Layout.alignment: Qt.AlignVCenter
+                                        visible: (deviceEntry.device.icon != "");
+                                        Rectangle{ 
+                                            id: entryIconBackground;
+                                            anchors.fill: parent;
+                                            radius: 50;
+                                            color: "#ffffff";
+                                            opacity: 0.6; 
+                                            visible: config.iconBackground;
+                                        }
+                                        IconImage{
+                                            id: entryIcon;
+                                            implicitSize: parent.height / 1.3;
+                                            anchors.centerIn: entryIconBackground;
+                                            source: `root:/icons/device_icons/${config.iconType}/${(deviceEntry.device.icon != "") ? deviceEntry.device.icon : "unknown" }`;
+                                        }
                                     }
-                                    Column{
+                                    ColumnLayout{
                                         id: entryInfo;
-                                        spacing: 0
+                                        height: deviceEntry.height;
+                                        spacing: 0;
                                         Text{
-                                            text: `<b>${deviceEntry.device.name}</b>`;
-                                            font.pointSize: 14
+                                            text: `<b>${deviceEntry.device.name}</b>`; // Device name
+                                            font.pointSize: config.width / 25;
+                                            color: config.fontColor;
                                         }
                                         Text{
                                             text: `<i>${deviceEntry.device.address}</i>`; // device mac
-                                            font.pointSize: 9;
+                                            font.pointSize: config.width  / 35;
+                                            color: config.fontColor;
+                                        }
+                                        Item{ // Placeholder
+                                            Layout.fillHeight: true;
                                         }
                                         Row{
                                             id: entryIcons;
-                                            IconImage{ // Displayed if the device is trusted
+                                            IconImage{ // Tick, blocked, non of these
                                                 source: deviceEntry.device.trusted ? "root:/icons/trusted.svg" : (deviceEntry.device.blocked) ? "root:/icons/blocked.svg" : "";
-                                                implicitSize: 20;
+                                                implicitSize: config.width / 15;
+                                                visible: (!deviceEntry.device.trused || !deviceEntry.device.blocked) ? true : false;
                                             }
-                                            IconImage{ // Displayed if the device is connected
+                                            IconImage{ // Displayed if the device is connected or paired
                                                 source: deviceEntry.device.connected ? "root:/icons/connected.svg" : "";
-                                                implicitSize: 18;
+                                                implicitSize: config.width / 16.6;
                                             }
                                             IconImage{ // Displayed if battery for device is available
                                                 source: deviceEntry.device.batteryAvailable ? "root:/icons/battery.svg" : "";
-                                                implicitSize: 18;
+                                                implicitSize: config.width / 16.6;
                                             }
                                             Text{ // Displayed if battery available
                                                 text: (deviceEntry.device.batteryAvailable) ? `<b>${deviceEntry.device.battery * 100}%</b>` : "";
-                                                font.pointSize: 12;
+                                                font.pointSize: config.width / 25;
                                                 // font.family: icelandFont.name;
                                             }
                                         }
                                     }
-                                    Row{ // Connect, trust, block
+                                    Item{
+                                        Layout.fillWidth: true;
+                                    }
+                                    IconImage{ // Connect button
+                                        source: (!deviceEntry.device.paired || !deviceEntry.device.connected) ? "root:/icons/link.png" : (deviceEntry.device.pairing) ? "root:/icons/loading.svg" :"root:/icons/link_break.png";
+                                        implicitSize: deviceEntry.height - 20;
+                                        Layout.alignment: Qt.AlignVCenter;
+                                        Layout.rightMargin: 10;
+                                        MouseArea{ // Currently authenticated connection is not available.
+                                            id: connectButton;
+                                            anchors.fill: parent;
+                                            onClicked: {
+                                                if (!deviceEntry.device.paired){
+                                                    deviceEntry.device.pair();
+                                                }
+                                                if (!deviceEntry.device.connected){
+                                                    deviceEntry.device.connect();
+                                                }
+                                                if (deviceEntry.device.connected){
+                                                    deviceEntry.device.disconnect();
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+                                //a
+                                /* MouseArea {  
+                                    anchors.fill: parent  
+                                    acceptedButtons: Qt.RightButton  
+                                    
+                                    onClicked: function(mouse) {  
+                                        if (mouse.button === Qt.RightButton) {  
+                                            contextDropdown.visible = true  
+                                            contextDropdown.x = mouse.x  
+                                            contextDropdown.y = mouse.y  
+                                        }  
+                                    }  
+                                    
+                                    onPressed: function(mouse) {  
+                                        if (mouse.button !== Qt.RightButton) {  
+                                            mouse.accepted = false  
+                                        }  
+                                    }  
+                                }  
+                                
+                                Rectangle {  
+                                    id: contextDropdown  
+                                    visible: false  
+                                    width: 200; 
+                                    height: 60
+                                    color: "white";
+                                    border.color: "gray"
+                                    radius: 10  
+                                    
+                                    Column {  
+                                        width: parent.width  
+                                        
+                                        Rectangle {  
+                                            width: parent.width  
+                                            height: 30  
+                                            color: mouseArea1.containsMouse ? "lightgray" : "transparent";
+                                            radius: 10
+                                            
+                                            Text {  
+                                                anchors.centerIn: parent  
+                                                text: "Option 1"  
+                                            }  
+                                            
+                                            MouseArea {  
+                                                id: mouseArea1  
+                                                anchors.fill: parent  
+                                                hoverEnabled: true  
+                                                onClicked: {  
+                                                    console.log("Option 1 selected")  
+                                                    contextDropdown.visible = false  
+                                                }  
+                                            }  
+                                        }  
+                                        
+                                        Rectangle {  
+                                            width: parent.width  
+                                            height: 30  
+                                            color: mouseArea2.containsMouse ? "lightgray" : "transparent"  
+                                            
+                                            Text {  
+                                                anchors.centerIn: parent  
+                                                text: "Option 2"  
+                                            }  
+                                            
+                                            MouseArea {  
+                                                id: mouseArea2  
+                                                anchors.fill: parent  
+                                                hoverEnabled: true  
+                                                onClicked: {  
+                                                    console.log("Option 2 selected")  
+                                                    contextDropdown.visible = false  
+                                                }  
+                                            }  
+                                        }  
+                                    }  
+                                } */
                             }
                         }
                     }

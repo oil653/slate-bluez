@@ -18,3 +18,9 @@ trusted.svg https://www.svgrepo.com/svg/529489/check-read
 battery.svg https://www.svgrepo.com/svg/498998/battery-black
 
 blocked.svg https://www.svgrepo.com/svg/485633/blocked
+
+loading.svg https://www.svgrepo.com/svg/521294/loading-16
+
+link.png designed by Creaticca Creative Agency from Flaticon.
+
+link_break.png designed by Freepik from Flaticon.

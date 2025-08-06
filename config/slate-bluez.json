@@ -6,15 +6,17 @@
     "bgColor": "#2d2a30",
     "bottomLeftRadius": 20,
     "bottomRightRadius": 20,
-    "entryColor": "#858585",
+    "entryColor": "#686868",
     "fontColor": "#e2e2e2",
     "height": 320,
-    "marginBottom": 50,
+    "iconBackground": true,
+    "iconType": "64x64",
+    "marginBottom": 200,
     "marginLeft": 0,
     "marginRight": 0,
     "marginTop": 0,
     "topBgColor": "#2a282b",
     "topLeftRadius": 20,
     "topRightRadius": 20,
-    "width": 350
+    "width": 300
 }
